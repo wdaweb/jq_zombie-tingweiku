@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Coda+Caption:wght@800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            font-size: 25px;
+            font-family: 'Coda Caption', sans-serif;
+        }
+
+        #game {
+            width: 1400px;
+            height: 969px;
+            margin: auto;
+            background: url('./images/bg.jpg') no-repeat;
+            background-size: contain;
+            overflow: hidden;
+            position: relative;
+            cursor: url('./images/net.png')100 100, auto;
+        }
+
+        #game img {
+            height: 150px;
+            position: absolute;
+        }
+
+        #scoreboard {
+            position: absolute;
+            z-index: 100;
+            color: white;
+        }
+
+        #btn-start {
+            position: absolute;
+            top: 17px;
+            left: 640px;
+            border: 0;
+            background-repeat: no-repeat;
+            background-color: rgb(11, 33, 21);
+        }
+
+        #score {
+            width: 150px;
+            position: absolute;
+            top: 20px;
+            left: 130px;
+        }
+
+        #time {
+            width: 200px;
+            position: absolute;
+            top: 20px;
+            left: 360px;
+        }
+
+        #highest {
+            width: 300px;
+            position: absolute;
+            top: 20px;
+            left: 820px;
+        }
+
+        #high-player {
+            width: 250px;
+            position: absolute;
+            top: 20px;
+            left: 1000px;
+        }
+
+        #high-score {
+            width: 150px;
+            position: absolute;
+            top: 20px;
+            left: 1220px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game">
+        <div id="scoreboard">
+            <input type="button" style="background-image: url('./images/start.png');width: 120px;height: 50px;"
+                id="btn-start">
+            <br>
+            <span id="score">Score: <span id="text-score">0</span></span>
+            <span id="time">Time: <span id="text-time">20</span> sec</span>
+            <span id="highest">Highest</span>
+            <span id="high-player">Name: <span id="text-highplayer">--</span></span>
+            <span id="high-score">Score: <span id="text-highscore">--</span></span>
+        </div>
+    </div>
+    <script src="../jquery-3.6.0.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        // 分數
+        let score = 0
+        // 遊戲時間
+        let countdown = 20
+        // 倒數計時
+        let timer = 0
+
+        let highscore = { name: '', score: 0 }
+        let highscoreStorage = JSON.parse(localStorage.getItem('highScore'))
+        if (highscoreStorage !== null) {
+            highscore = highscoreStorage
+            $('#text-highplayer').text(highscore.name)
+            $('#text-highscore').text(highscore.score)
+        }
+
+        const move = (zb) => {
+            zb.stop().animate({
+                left: Math.round(Math.random() * 70) + '%',
+                top: Math.round(Math.random() * 70) + '%'
+            }, 2000, function () {
+                move(zb)
+            })
+        }
+
+        $('#btn-start').click(function () {
+            $(this).attr('disabled', true)
+
+            // 重設
+            score = 0
+            $('#text-score').text(score)
+            countdown = 20
+            $('#text-time').text(countdown)
+
+            timer = setInterval(() => {
+                // 倒數
+                countdown--
+                $('#text-time').text(countdown)
+
+                // 隨機產生
+                let rand = Math.round(Math.random() * 10)
+                if (rand > 5 && $('#game img').length < 10) {
+                    const zb = $(`<img src="./images/insect.png" style="left: ${Math.round(Math.random() * 100)}% ;top: ${Math.round(Math.random() * 70)}% ;">`)
+                    $('#game').append(zb)
+                    move(zb)
+                }
+                // 時間到
+                if (countdown <= 0) {
+                    clearInterval(timer)
+                    alert(`你得到 ${score} 分`)
+                    $('#game img').remove()
+                    $(this).attr('disabled', false)
+
+                    if (score > highscore.score) {
+                        highscore.score = score
+                        highscore.name = prompt('最高分！請輸入名字')
+                        if (highscore.name === null || highscore.name.length === 0) {
+                            highscore.name = '路人'
+                        }
+                        $('#text-highplayer').text(highscore.name)
+                        $('#text-highscore').text(highscore.score)
+                        localStorage.setItem('highScore', JSON.stringify(highscore))
+                    }
+                }
+            }, 1000);
+        })
+
+        $('#game').on('click', 'img', function () {
+            $(this).attr('src', '')
+            $(this).stop()
+            // 忽略點擊事件、無法點擊和選取
+            $(this).css({
+                'user-select': 'none',
+                '-webkit-user-drag': 'none',
+                'pointer-events': 'none'
+            })
+            score++
+            $('#text-score').text(score)
+        })
+    </script>
+</body>
+
+</html>
